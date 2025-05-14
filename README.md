@@ -32,7 +32,8 @@ A SquadJS plugin that send a discord message when the server goes live from seed
   "embed_fields_server": true,
   "embed_fields_map": true,
   "embed_fields_player_count": true,
-  "embed_fields_player_list": true
+  "embed_fields_player_list": true,
+  "player_list_separator": "\n"
 }
 ```
 
@@ -60,3 +61,4 @@ sent in and selecting the 'Copy Channel ID' option.
 | embed_fields_map          | ❌        | Turn on or off the 'Map' field in the embed.                          | `true`                                                                  | `true`  |
 | embed_fields_player_count | ❌        | Turn on or off the 'Player Count' field in the embed.                 | `true`                                                                  | `true`  |
 | embed_fields_player_list  | ❌        | Turn on or off the 'Player List' field in the embed.                  | `true`                                                                  | `true`  |
+| player_list_separator     | ❌        | The characters used to separate each player in the player list.       | `", "`                                                                  | `"\n"`  |

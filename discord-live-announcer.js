@@ -117,6 +117,12 @@ export default class DiscordLiveAnnouncer extends DiscordBasePlugin {
         description: "Turn on or off the 'Player List' field in the embed",
         default: true,
         example: true
+      },
+      player_list_separator: {
+        required: false,
+        description: "The characters used to separate each player in the player list.",
+        default: "\n",
+        example: ", "
       }
     };
   }
@@ -143,56 +149,78 @@ export default class DiscordLiveAnnouncer extends DiscordBasePlugin {
       this.verbose(1, "Failed to load current layer.");
       return;
     }
-    if (layer.gamemode === "Seed") {
-      const playerCount = this.server.players.length;
-      if (playerCount < this.options.seedingThreshold) return;
-      this.verbose(1, "2");
-      const message = {
-        content: this.options.content,
-        embed: {
-          title: this.options.embed_title,
-          url: this.options.embed_url,
-          description: this.options.embed_description,
-          color: this.options.embed_color,
-          author: {
-            name: this.options.embed_author_name,
-            url: this.options.embed_author_url,
-            icon_url: this.options.embed_author_icon_url
-          },
-          fields: [],
-          image: {
-            url: this.options.embed_image_url
-          },
-          thumbnail: {
-            url: this.options.embed_thumbnail_url
-          },
-          footer: {
-            text: this.options.embed_footer_text,
-            icon_url: this.options.embed_footer_icon_url
-          },
-          timestamp: info.time.toISOString()
-        }
-      };
-      if (this.options.embed_fields_server) message.embed.fields.push({
-        name: "Server",
-        value: this.server.serverName
-      });
-      if (this.options.embed_fields_map) message.embed.fields.push({
-        name: "Map",
-        value: layer.name
-      });
-      if (this.options.embed_fields_player_count) message.embed.fields.push({
-        name: "Player Count",
-        value: `${playerCount} / ${this.server.maxPlayers}`
-      });
-      if (this.options.embed_fields_player_list) message.embed.fields.push({
-        name: "Players",
-        value: `${this.server.players.map((obj) => obj.name).join("\n")}`
-      });
+    if (layer.gamemode !== "Seed") {
+      this.sent = false;
+      return;
+    }
+    if (this.sent) return;
+    const playerCount = this.server.players.length;
+    if (this.server.players.length < this.options.seedingThreshold) return;
+
+    const message = {
+      content: this.options.content,
+      embed: {
+        title: this.options.embed_title,
+        url: this.options.embed_url,
+        description: this.options.embed_description,
+        color: this.options.embed_color,
+        author: {
+          name: this.options.embed_author_name,
+          url: this.options.embed_author_url,
+          icon_url: this.options.embed_author_icon_url
+        },
+        fields: [],
+        image: {
+          url: this.options.embed_image_url
+        },
+        thumbnail: {
+          url: this.options.embed_thumbnail_url
+        },
+        footer: {
+          text: this.options.embed_footer_text,
+          icon_url: this.options.embed_footer_icon_url
+        },
+        timestamp: info.time.toISOString()
+      }
+    };
+    if (this.options.embed_fields_server) {
+      message.embed.fields.push({ name: "Server", value: this.server.serverName });
+    }
+    if (this.options.embed_fields_map) {
+      message.embed.fields.push({ name: "Map", value: layer.name });
+    }
+    if (this.options.embed_fields_player_count) {
+      message.embed.fields.push({ name: "Player Count", value: playerCount + " / " + this.server.maxPlayers });
+    }
+    if (this.options.embed_fields_player_list) {
+      message.embed.fields.push({ name: "Players", value: this.getPlayers() });
+    }
+
+    try {
       await this.sendDiscordMessage(message);
       this.sent = true;
-    } else if (this.sent) {
-      this.sent = false;
+    } catch (e) {
+      this.verbose(1, `Failed to send message: ${e}`);
     }
+  }
+
+  getPlayers() {
+    let result = "";
+    const players = this.server.players;
+
+    for (let i = 0; i < players.length; i++) {
+      const name = players[i].name;
+      const isLast = (i === players.length - 1);
+      const next = isLast ? name : name + this.options.player_list_separator;
+
+      if ((result + next).length + (isLast ? 0 : 3) > 1024) {
+        result += "...";
+        break;
+      }
+
+      result += next;
+    }
+
+    return result;
   }
 }
