@@ -120,7 +120,7 @@ export default class DiscordLiveAnnouncer extends DiscordBasePlugin {
       },
       player_list_separator: {
         required: false,
-        description: "The characters used to separate each player in the player list.",
+        description: 'The characters used to separate each player in the player list.',
         default: "\n",
         example: ", "
       }
@@ -155,7 +155,8 @@ export default class DiscordLiveAnnouncer extends DiscordBasePlugin {
     }
     if (this.sent) return;
     const playerCount = this.server.players.length;
-    if (this.server.players.length < this.options.seedingThreshold) return;
+    if (playerCount < this.options.seedingThreshold) return;
+    this.sent = true;
 
     const message = {
       content: this.options.content,
@@ -198,7 +199,6 @@ export default class DiscordLiveAnnouncer extends DiscordBasePlugin {
 
     try {
       await this.sendDiscordMessage(message);
-      this.sent = true;
     } catch (e) {
       this.verbose(1, `Failed to send message: ${e}`);
     }
