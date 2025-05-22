@@ -153,9 +153,9 @@ export default class DiscordLiveAnnouncer extends DiscordBasePlugin {
       this.sent = false;
       return;
     }
-    if (this.sent) return;
     const playerCount = this.server.players.length;
     if (playerCount < this.options.seedingThreshold) return;
+    if (this.sent) return;
     this.sent = true;
 
     const message = {
