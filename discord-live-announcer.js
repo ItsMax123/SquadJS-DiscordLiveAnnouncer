@@ -135,15 +135,15 @@ export default class DiscordLiveAnnouncer extends DiscordBasePlugin {
 
   async mount() {
     await super.mount();
-    this.server.on("PLAYER_CONNECTED", this.onPlayerCountChange);
+    this.server.on("UPDATED_PLAYER_INFORMATION", this.onPlayerCountChange);
   }
 
   async unmount() {
     await super.unmount();
-    this.server.removeEventListener("PLAYER_CONNECTED", this.onPlayerCountChange);
+    this.server.removeEventListener("UPDATED_PLAYER_INFORMATION", this.onPlayerCountChange);
   }
 
-  async onPlayerCountChange(info) {
+  async onPlayerCountChange() {
     const layer = await this.server.currentLayer;
     if (!layer) {
       this.verbose(1, "Failed to load current layer.");
@@ -153,9 +153,9 @@ export default class DiscordLiveAnnouncer extends DiscordBasePlugin {
       this.sent = false;
       return;
     }
+    if (this.sent) return;
     const playerCount = this.server.players.length;
     if (playerCount < this.options.seedingThreshold) return;
-    if (this.sent) return;
     this.sent = true;
 
     const message = {
@@ -181,7 +181,7 @@ export default class DiscordLiveAnnouncer extends DiscordBasePlugin {
           text: this.options.embed_footer_text,
           icon_url: this.options.embed_footer_icon_url
         },
-        timestamp: info.time.toISOString()
+        timestamp: new Date().toISOString()
       }
     };
     if (this.options.embed_fields_server) {
